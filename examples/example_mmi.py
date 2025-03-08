@@ -1,3 +1,5 @@
+
+#%%
 import numpy as np
 import matplotlib.pyplot as plt
 from bpm.refractive_index import generate_MMI_n_r2
@@ -6,19 +8,19 @@ from bpm.core import run_bpm
 from bpm.pml import generate_sigma_x
 
 # Simulation parameters
-domain_size = 100.0   # um (transverse)
-z_total = 200.0       # um (propagation length)
-Nx = 512
-Nz = 512
+domain_size = 50.0   # um (transverse)
+z_total = 250.0       # um (propagation length)
+Nx = 256
+Nz = 1024
 x = np.linspace(-domain_size/2, domain_size/2, Nx)
 z = np.linspace(0, z_total, Nz)
 
 # MMI structure parameters
 z_MMI_start = 50.0    
-L_MMI = 40.0          
-w_MMI = 40.0          
-w_wg = 4.0            
-d = 12.0              
+L_MMI = 130.0          # MMI region length = 40 um
+w_MMI = 8.0          # MMI region width = 40 um
+w_wg = 2.0            
+d = 4.0              
 
 n0 = 1.0      
 n_WG = 1.1    
@@ -43,9 +45,22 @@ E_out = run_bpm(E, n_r2, x, z, dx, z[1]-z[0], n0, sigma_x, 0.532)
 
 # Plot final intensity
 plt.figure(figsize=(8,6))
-plt.imshow(np.abs(E_out)**2, extent=[x[0], x[-1], z[0], z[-1]], origin='lower', aspect='auto', cmap='inferno')
+plt.imshow((np.abs(E_out)**2).T, extent=[x[0], x[-1], z[0], z[-1]],
+           origin='lower', aspect='auto', cmap='inferno')
 plt.xlabel("x (um)")
 plt.ylabel("z (um)")
 plt.title("MMI Splitter BPM Propagation")
 plt.colorbar(label="Intensity")
 plt.show()
+
+# %%
+
+plt.figure(figsize=(8,6))
+plt.imshow(np.sqrt(n_r2).T, extent=[x[0], x[-1], z[0], z[-1]],
+           origin='lower', aspect='auto', cmap='inferno')
+plt.xlabel("x (um)")
+plt.ylabel("z (um)")
+plt.title("n")
+plt.colorbar(label="Intensity")
+plt.show()
+# %%
