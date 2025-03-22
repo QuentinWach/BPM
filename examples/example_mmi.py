@@ -1,7 +1,6 @@
-
 #%%
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from bpm.refractive_index import generate_MMI_n_r2
 from bpm.mode_solver import slab_mode_source
 from bpm.core import run_bpm
@@ -43,24 +42,41 @@ sigma_x = generate_sigma_x(x, dx, 0.532, domain_size, sigma_max=0.5, pml_factor=
 # Run BPM propagation
 E_out = run_bpm(E, n_r2, x, z, dx, z[1]-z[0], n0, sigma_x, 0.532)
 
-# Plot final intensity
-plt.figure(figsize=(8,6))
-plt.imshow((np.abs(E_out)**2).T, extent=[x[0], x[-1], z[0], z[-1]],
-           origin='lower', aspect='auto', cmap='inferno')
-plt.xlabel("x (um)")
-plt.ylabel("z (um)")
-plt.title("MMI Splitter BPM Propagation")
-plt.colorbar(label="Intensity")
-plt.show()
+# Plot final intensity using Plotly
+fig1 = go.Figure(data=go.Heatmap(
+    z=(np.abs(E_out)**2).T,
+    x=x,
+    y=z,
+    colorscale='inferno',
+    colorbar=dict(title='Intensity')
+))
 
-# %%
+fig1.update_layout(
+    title='MMI Splitter BPM Propagation',
+    xaxis_title='x (um)',
+    yaxis_title='z (um)',
+    width=800,
+    height=600
+)
 
-plt.figure(figsize=(8,6))
-plt.imshow(np.sqrt(n_r2).T, extent=[x[0], x[-1], z[0], z[-1]],
-           origin='lower', aspect='auto', cmap='inferno')
-plt.xlabel("x (um)")
-plt.ylabel("z (um)")
-plt.title("n")
-plt.colorbar(label="Intensity")
-plt.show()
+fig1.show()
+
+# Plot refractive index profile using Plotly
+fig2 = go.Figure(data=go.Heatmap(
+    z=np.sqrt(n_r2).T,
+    x=x,
+    y=z,
+    colorscale='inferno',
+    colorbar=dict(title='Refractive Index')
+))
+
+fig2.update_layout(
+    title='Refractive Index Profile',
+    xaxis_title='x (um)',
+    yaxis_title='z (um)',
+    width=800,
+    height=600
+)
+
+fig2.show()
 # %%
