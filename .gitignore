@@ -3,3 +3,4 @@
 /my_bpm.egg-info
 /bpm/__pycache__
 *.png
+/gds_designs/gds_env
