@@ -67,11 +67,7 @@ with gr.Blocks() as demo:
             ind_m_slider = gr.Slider(0, 4, value=0, step=1, label="Mode index ind_m")
 
             run_button = gr.Button("Run BPM")
-            download_button = gr.DownloadButton(
-                label="Download data",
-                file_name="waveguide_data.npz",
-                interactive=True
-            )
+            download_button = gr.DownloadButton(label="Download data")
 
         with gr.Column(scale=2):
             plot_output = gr.Plot()
