@@ -4,3 +4,5 @@
 /bpm/__pycache__
 *.png
 /gds_designs/gds_env
+gds_designs/.DS_Store
+.DS_Store
