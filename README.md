@@ -1,5 +1,7 @@
-# BPM
-Beam Propagation Method
+# BPM (Beam Propagation Method)
+
+**Update 202505**: I've "deployed" a [Gradio](https://www.gradio.app/) based GUI on Hugging Face, future development will likely continue there:
+- [https://huggingface.co/spaces/jwt625/BPM](https://huggingface.co/spaces/jwt625/BPM)
 
 **BPM** is a Python library for simulating beam propagation in integrated photonics using the Beam Propagation Method (BPM). The package provides functions to generate refractive index distributions for various structures (e.g., lenses, waveguides, and MMI splitters), a mode solver for slab waveguides, and BPM propagation routines with support for Perfectly Matched Layers (PML) for absorbing boundary conditions.
 
