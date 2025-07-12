@@ -57,9 +57,9 @@ The field array `E` might be initialized as real-valued, causing casting issues.
    - [ ] Provide clear error messages
 
 **TODO Items**:
-- [ ] Modify `run_bpm` to ensure complex field initialization
-- [ ] Add unit test for complex field handling
-- [ ] Update docstring with dtype requirements
+- [x] Modify `run_bpm` to ensure complex field initialization
+- [x] Add unit test for complex field handling
+- [x] Update docstring with dtype requirements
 
 #### 1.2 Replace Deprecated trapz Function
 
@@ -85,10 +85,10 @@ The field array `E` might be initialized as real-valued, causing casting issues.
    ```
 
 **TODO Items**:
-- [ ] Replace `np.trapz` with `np.trapezoid`
-- [ ] Add numpy version compatibility check
-- [ ] Test with different numpy versions
-- [ ] Update requirements to specify minimum numpy version
+- [x] Replace `np.trapz` with `np.trapezoid`
+- [x] Add numpy version compatibility check
+- [x] Test with different numpy versions
+- [x] Update requirements to specify minimum numpy version
 
 #### 1.3 Add Input Validation
 
@@ -122,10 +122,10 @@ The field array `E` might be initialized as real-valued, causing casting issues.
    ```
 
 **TODO Items**:
-- [ ] Add validation to all public functions
-- [ ] Create validation helper module
-- [ ] Add stability condition checks (CFL, sampling)
-- [ ] Write validation tests
+- [x] Add validation to all public functions
+- [x] Create validation helper module
+- [x] Add stability condition checks (CFL, sampling)
+- [x] Write validation tests
 
 ### Priority 2: Performance Improvements (High)
 
@@ -162,8 +162,8 @@ def compute_dE_dz_jit(E_slice, n_r2_slice, dx, n0, sigma_x, k0):
 **TODO Items**:
 - [ ] Implement batch processing for multiple z-slices
 - [ ] Add numba JIT compilation option
-- [ ] Benchmark performance improvements
-- [ ] Add performance tests
+- [x] Benchmark performance improvements
+- [x] Add performance tests
 - [ ] Make optimization level configurable
 
 #### 2.2 Optimize Finite Difference Operations
@@ -194,10 +194,10 @@ def create_laplacian_matrix(N, dx):
 ```
 
 **TODO Items**:
-- [ ] Implement direct indexing Laplacian
+- [x] Implement direct indexing Laplacian
 - [ ] Add sparse matrix option for large grids
-- [ ] Benchmark different approaches
-- [ ] Add boundary condition handling
+- [x] Benchmark different approaches
+- [x] Add boundary condition handling
 - [ ] Make method selectable via parameter
 
 ### Priority 3: Feature Enhancements (Medium)
