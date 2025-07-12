@@ -21,7 +21,41 @@ def generate_lens_n_r2(x, z, lens_diameter, lens_thickness, R1, R2, n_lens, n0, 
 def generate_waveguide_n_r2(x, z, l, L, w, n_WG, n0):
     """
     Generate the squared refractive index distribution for an S-bend waveguide.
+
+    Parameters:
+    -----------
+    x, z : array_like
+        1D coordinate arrays
+    l : float
+        Lateral displacement (can be positive or negative)
+    L : float
+        Propagation length (must be positive)
+    w : float
+        Waveguide width (must be positive)
+    n_WG : float
+        Waveguide core refractive index (must be > n0)
+    n0 : float
+        Background refractive index (must be positive)
+
+    Returns:
+    --------
+    n_r2 : ndarray
+        2D array of squared refractive index distribution
     """
+    # Input validation
+    x = np.asarray(x)
+    z = np.asarray(z)
+    if x.ndim != 1 or z.ndim != 1:
+        raise ValueError("x and z must be 1D arrays")
+    if L <= 0:
+        raise ValueError("Propagation length L must be positive")
+    if w <= 0:
+        raise ValueError("Waveguide width w must be positive")
+    if n_WG <= n0:
+        raise ValueError("Core index n_WG must be greater than background index n0")
+    if n0 <= 0:
+        raise ValueError("Background index n0 must be positive")
+
     Nx = len(x)
     Nz = len(z)
     n_r2 = np.full((Nx, Nz), n0**2, dtype=np.float64)

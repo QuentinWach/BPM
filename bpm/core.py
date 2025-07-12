@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 # Global factors; these might be computed more dynamically in a full implementation.
 laplacian_factor = None
@@ -20,19 +21,41 @@ def compute_dE_dz(E_slice, n_r2_slice, dx, n0, sigma_x, k0):
 def run_bpm(E, n_r2, x, z, dx, dz, n0, sigma_x, wavelength):
     """
     Run the BPM propagation using an RK4 integrator.
-    
+
     Parameters:
-      E: initial field (2D array, shape (len(x), len(z)); only E[:,0] is used)
+      E: initial field (2D array, shape (len(x), len(z)), dtype=complex128; only E[:,0] is used)
       n_r2: refractive index squared distribution (2D array, shape (len(x), len(z)))
       x, z: transverse and propagation coordinates
       dx, dz: grid spacings in x and z
       n0: background refractive index
       sigma_x: 1D array for PML damping in x
       wavelength: wavelength in um
-    
+
     Returns:
-      E: propagated field (2D array)
+      E: propagated field (2D array, dtype=complex128)
     """
+    # Input validation
+    if not isinstance(E, np.ndarray):
+        raise TypeError("E must be numpy array")
+    if E.ndim != 2:
+        raise ValueError("E must be 2D array")
+    if not np.iscomplexobj(E):
+        E = E.astype(np.complex128)
+        warnings.warn("Converting field E to complex128", UserWarning)
+
+    # Ensure proper dtype
+    E = np.asarray(E, dtype=np.complex128)
+
+    # Validate shapes
+    if E.shape != n_r2.shape:
+        raise ValueError("E and n_r2 must have same shape")
+    if len(x) != E.shape[0]:
+        raise ValueError("x length must match E first dimension")
+    if len(z) != E.shape[1]:
+        raise ValueError("z length must match E second dimension")
+    if len(sigma_x) != len(x):
+        raise ValueError("sigma_x length must match x length")
+
     k0 = 2 * np.pi / wavelength
     Nz = len(z)
     for zi in range(1, Nz):

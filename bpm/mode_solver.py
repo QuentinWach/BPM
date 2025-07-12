@@ -1,10 +1,58 @@
 import numpy as np
 import warnings
 
+# Handle numpy version compatibility for trapezoid function
+try:
+    from numpy import trapezoid
+except ImportError:
+    # Fallback for older numpy versions
+    from numpy import trapz as trapezoid
+    warnings.warn(
+        "Using deprecated trapz. Please upgrade numpy >= 1.22.0",
+        DeprecationWarning
+    )
+
 def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
     """
     Returns the normalized TE mode profile for a symmetric slab waveguide with a lateral shift x0.
+
+    Parameters:
+    -----------
+    x : array_like
+        1D array of x coordinates
+    w : float
+        Waveguide width (must be positive)
+    n_WG : float
+        Waveguide core refractive index (must be > n0)
+    n0 : float
+        Background/cladding refractive index (must be positive)
+    wavelength : float
+        Wavelength in microns (must be positive)
+    ind_m : int, optional
+        Mode index (default: 0)
+    x0 : float, optional
+        Lateral shift (default: 0)
+
+    Returns:
+    --------
+    E : ndarray
+        Normalized mode field profile
     """
+    # Input validation
+    x = np.asarray(x)
+    if x.ndim != 1:
+        raise ValueError("x must be 1D array")
+    if w <= 0:
+        raise ValueError("Waveguide width w must be positive")
+    if n_WG <= n0:
+        raise ValueError("Core index n_WG must be greater than cladding index n0")
+    if n0 <= 0:
+        raise ValueError("Cladding index n0 must be positive")
+    if wavelength <= 0:
+        raise ValueError("Wavelength must be positive")
+    if not isinstance(ind_m, int) or ind_m < 0:
+        raise ValueError("Mode index ind_m must be non-negative integer")
+
     k0 = 2 * np.pi / wavelength
 
     def f_even(beta):
@@ -127,6 +175,6 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
                 E[i] = np.sin(kx * xp)
             else:
                 E[i] = np.sign(xp) * np.sin(kx * (w/2)) * np.exp(-kappa * (abs(xp)-w/2))
-    norm = np.sqrt(np.trapz(np.abs(E)**2, x))
+    norm = np.sqrt(trapezoid(np.abs(E)**2, x))
     E /= norm
     return E

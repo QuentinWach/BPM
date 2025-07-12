@@ -29,7 +29,7 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "numpy>=1.20.0",
+    "numpy>=1.22.0",  # Required for trapezoid function
     "matplotlib>=3.5.0",
 ]
 
@@ -46,8 +46,15 @@ gui = [
     "gradio>=4.0.0",
     "plotly>=5.0.0",
 ]
+test = [
+    "pytest>=7.0.0",
+    "plotly>=5.0.0",  # Required for test_mode_solver.py
+]
+examples = [
+    "plotly>=5.0.0",  # Required for example_mmi.py
+]
 all = [
-    "bpm[dev,gui]",
+    "bpm[dev,gui,test,examples]",
 ]
 
 [project.urls]

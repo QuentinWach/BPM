@@ -36,7 +36,16 @@ Then clone and set up the project:
 ```bash
 git clone https://github.com/jwt625/bpm.git
 cd bpm
-uv sync --extra dev --extra gui  # Install with development and GUI dependencies
+
+# Basic installation
+uv pip install -e .
+
+# With optional dependencies
+uv pip install -e ".[test]"      # For running tests
+uv pip install -e ".[examples]"  # For running examples
+uv pip install -e ".[gui]"       # For GUI functionality
+uv pip install -e ".[dev]"       # For development
+uv pip install -e ".[all]"       # Install everything
 ```
 
 ### Using pip (Traditional)
@@ -44,7 +53,16 @@ uv sync --extra dev --extra gui  # Install with development and GUI dependencies
 ```bash
 git clone https://github.com/jwt625/bpm.git
 cd bpm
-pip install -e .[dev,gui]
+
+# Basic installation
+pip install -e .
+
+# With optional dependencies
+pip install -e ".[test]"      # For running tests
+pip install -e ".[examples]"  # For running examples
+pip install -e ".[gui]"       # For GUI functionality
+pip install -e ".[dev]"       # For development
+pip install -e ".[all]"       # Install everything
 ```
 
 ### Running the GUI
