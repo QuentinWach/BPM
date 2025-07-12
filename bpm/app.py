@@ -81,5 +81,10 @@ with gr.Blocks() as demo:
     for inp in inputs:
         inp.change(fn=run_waveguide, inputs=inputs, outputs=[plot_output, download_button])
 
-demo.launch()
+def main():
+    """Main entry point for the BPM GUI application."""
+    demo.launch()
+
+if __name__ == "__main__":
+    main()
 

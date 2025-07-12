@@ -20,12 +20,43 @@ Currently it is 2D only, and use analytic solutions to launch slab modes. Propag
 
 ## Installation
 
-Clone the repository and install using pip:
+### Using uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager. Install it first if you haven't:
+
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# or on macOS with Homebrew
+brew install uv
+```
+
+Then clone and set up the project:
 
 ```bash
 git clone https://github.com/jwt625/bpm.git
 cd bpm
-pip install -e .
+uv sync --extra dev --extra gui  # Install with development and GUI dependencies
+```
+
+### Using pip (Traditional)
+
+```bash
+git clone https://github.com/jwt625/bpm.git
+cd bpm
+pip install -e .[dev,gui]
+```
+
+### Running the GUI
+
+After installation, you can launch the interactive GUI:
+
+```bash
+# With uv
+uv run bpm-gui
+
+# With pip
+bpm-gui
 ```
 
 
@@ -49,6 +80,52 @@ Simulated example MMI:
 Simulated example S bend. The waveguide is multimode:
 
 ![image](https://github.com/user-attachments/assets/fdf6e0ba-5684-4312-8bb1-c2ab070e5de5)
+
+## Development
+
+### Setting up the development environment
+
+```bash
+# Clone the repository
+git clone https://github.com/jwt625/bpm.git
+cd bpm
+
+# Create virtual environment and install dependencies
+uv sync --extra dev --extra gui
+
+# Run tests
+uv run pytest
+
+# Run tests with coverage
+uv run pytest --cov=bpm --cov-report=html
+
+# Format code
+uv run black bpm/ tests/
+uv run isort bpm/ tests/
+
+# Type checking
+uv run mypy bpm/
+
+# Linting
+uv run flake8 bpm/ tests/
+```
+
+### Project Structure
+
+```
+bpm/
+├── bpm/                    # Main package
+│   ├── __init__.py        # Package initialization
+│   ├── core.py            # BPM propagation engine
+│   ├── mode_solver.py     # Slab waveguide mode solver
+│   ├── refractive_index.py # Structure generation
+│   ├── pml.py             # Perfectly Matched Layer
+│   └── app.py             # Gradio GUI application
+├── tests/                 # Test suite
+├── examples/              # Usage examples
+├── pyproject.toml         # Project configuration
+└── README.md              # This file
+```
 
 
 
