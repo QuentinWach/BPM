@@ -1,6 +1,25 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 
-def generate_lens_n_r2(x, z, lens_diameter, lens_thickness, R1, R2, n_lens, n0, lens_center_z, x_lens):
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+
+def generate_lens_n_r2(
+    x: NDArray[np.float64],
+    z: NDArray[np.float64],
+    lens_diameter: float,
+    lens_thickness: float,
+    R1: float,
+    R2: float,
+    n_lens: float,
+    n0: float,
+    lens_center_z: float,
+    x_lens: float,
+) -> NDArray[np.float64]:
     """
     Generate the squared refractive index distribution for a spherical lens.
     """
@@ -9,8 +28,8 @@ def generate_lens_n_r2(x, z, lens_diameter, lens_thickness, R1, R2, n_lens, n0, 
     n_r2 = np.full((Nx, Nz), n0**2, dtype=np.float64)
     z1 = lens_center_z - lens_thickness / 2.0
     z2 = lens_center_z + lens_thickness / 2.0
-    z_first = z1 + (R1 - np.sqrt(np.maximum(R1**2 - (x - x_lens)**2, 0)))
-    z_second = z2 - (R2 - np.sqrt(np.maximum(R2**2 - (x - x_lens)**2, 0)))
+    z_first = z1 + (R1 - np.sqrt(np.maximum(R1**2 - (x - x_lens) ** 2, 0)))
+    z_second = z2 - (R2 - np.sqrt(np.maximum(R2**2 - (x - x_lens) ** 2, 0)))
     for ix in range(Nx):
         if abs(x[ix] - x_lens) > lens_diameter / 2:
             continue
@@ -18,7 +37,16 @@ def generate_lens_n_r2(x, z, lens_diameter, lens_thickness, R1, R2, n_lens, n0, 
         n_r2[ix, in_lens] = n_lens**2
     return n_r2
 
-def generate_waveguide_n_r2(x, z, l, L, w, n_WG, n0):
+
+def generate_waveguide_n_r2(
+    x: NDArray[np.float64],
+    z: NDArray[np.float64],
+    l: float,
+    L: float,
+    w: float,
+    n_WG: float,
+    n0: float,
+) -> NDArray[np.float64]:
     """
     Generate the squared refractive index distribution for an S-bend waveguide.
 
@@ -68,7 +96,19 @@ def generate_waveguide_n_r2(x, z, l, L, w, n_WG, n0):
         n_r2[in_wg, iz] = n_WG**2
     return n_r2
 
-def generate_MMI_n_r2(x, z, z_MMI_start, L_MMI, w_MMI, w_wg, d, n_WG, n_MMI, n0):
+
+def generate_MMI_n_r2(
+    x: NDArray[np.float64],
+    z: NDArray[np.float64],
+    z_MMI_start: float,
+    L_MMI: float,
+    w_MMI: float,
+    w_wg: float,
+    d: float,
+    n_WG: float,
+    n_MMI: float,
+    n0: float,
+) -> NDArray[np.float64]:
     """
     Generate the squared refractive index distribution for an MMI-based splitter.
     """
@@ -77,9 +117,13 @@ def generate_MMI_n_r2(x, z, z_MMI_start, L_MMI, w_MMI, w_wg, d, n_WG, n_MMI, n0)
     X, Z = np.meshgrid(x, z, indexing="ij")
     n_r2 = np.full((Nx, Nz), n0**2, dtype=np.float64)
     z_MMI_end = z_MMI_start + L_MMI
-    mask_input = (Z < z_MMI_start) & (((np.abs(X + d/2) <= w_wg/2) | (np.abs(X - d/2) <= w_wg/2)))
-    mask_MMI = (Z >= z_MMI_start) & (Z <= z_MMI_end) & (np.abs(X) <= w_MMI/2)
-    mask_output = (Z > z_MMI_end) & (((np.abs(X + d/2) <= w_wg/2) | (np.abs(X - d/2) <= w_wg/2)))
+    mask_input = (z_MMI_start > Z) & (
+        (np.abs(X + d / 2) <= w_wg / 2) | (np.abs(X - d / 2) <= w_wg / 2)
+    )
+    mask_MMI = (z_MMI_start <= Z) & (z_MMI_end >= Z) & (np.abs(X) <= w_MMI / 2)
+    mask_output = (z_MMI_end < Z) & (
+        (np.abs(X + d / 2) <= w_wg / 2) | (np.abs(X - d / 2) <= w_wg / 2)
+    )
     n_r2[mask_input] = n_WG**2
     n_r2[mask_output] = n_WG**2
     n_r2[mask_MMI] = n_MMI**2

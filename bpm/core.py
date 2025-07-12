@@ -1,12 +1,21 @@
-import numpy as np
+from __future__ import annotations
+
 import warnings
+from typing import TYPE_CHECKING
+
+import numpy as np
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 # Global factors; these might be computed more dynamically in a full implementation.
-laplacian_factor = None
-index_factor = None
+laplacian_factor: float | None = None
+index_factor: float | None = None
 
 
-def validate_stability_conditions(dx, dz, wavelength, n_max, warn=True):
+def validate_stability_conditions(
+    dx: float, dz: float, wavelength: float, n_max: float, warn: bool = True
+) -> bool:
     """
     Validate numerical stability conditions for BPM propagation.
 
@@ -44,7 +53,8 @@ def validate_stability_conditions(dx, dz, wavelength, n_max, warn=True):
             warnings.warn(
                 f"Sampling condition violated: dx={dx:.3e} > λ_min/10={min_wavelength/10:.3e}. "
                 "Consider reducing dx for accurate field representation.",
-                UserWarning
+                UserWarning,
+                stacklevel=2,
             )
 
         if not cfl_condition:
@@ -52,19 +62,29 @@ def validate_stability_conditions(dx, dz, wavelength, n_max, warn=True):
             warnings.warn(
                 f"CFL-like condition violated: dz={dz:.3e} > {max_dz:.3e}. "
                 "Consider reducing dz for numerical stability.",
-                UserWarning
+                UserWarning,
+                stacklevel=2,
             )
 
         if not paraxial_condition:
             warnings.warn(
                 f"Paraxial condition marginal: dx*k0*n_max={dx*k0*n_max:.2f} >= π. "
                 "Consider reducing dx or check for numerical artifacts.",
-                UserWarning
+                UserWarning,
+                stacklevel=2,
             )
 
     return sampling_condition and cfl_condition and paraxial_condition
 
-def compute_dE_dz(E_slice, n_r2_slice, dx, n0, sigma_x, k0):
+
+def compute_dE_dz(
+    E_slice: NDArray[np.complex128],
+    n_r2_slice: NDArray[np.float64],
+    dx: float,
+    n0: float,
+    sigma_x: NDArray[np.float64],
+    k0: float,
+) -> NDArray[np.complex128]:
     """
     Compute the derivative dE/dz using the BPM equation:
 
@@ -76,20 +96,36 @@ def compute_dE_dz(E_slice, n_r2_slice, dx, n0, sigma_x, k0):
 
     # Interior points: second-order central difference
     if N > 2:
-        laplacian_E[1:-1] = (E_slice[2:] - 2*E_slice[1:-1] + E_slice[:-2]) / dx**2
+        laplacian_E[1:-1] = (E_slice[2:] - 2 * E_slice[1:-1] + E_slice[:-2]) / dx**2
 
     # Boundary conditions: use one-sided differences or periodic
     # For PML boundaries, we can use simple extrapolation
     if N > 1:
-        laplacian_E[0] = (E_slice[1] - 2*E_slice[0] + E_slice[-1]) / dx**2  # Periodic-like
-        laplacian_E[-1] = (E_slice[0] - 2*E_slice[-1] + E_slice[-2]) / dx**2  # Periodic-like
+        laplacian_E[0] = (
+            E_slice[1] - 2 * E_slice[0] + E_slice[-1]
+        ) / dx**2  # Periodic-like
+        laplacian_E[-1] = (
+            E_slice[0] - 2 * E_slice[-1] + E_slice[-2]
+        ) / dx**2  # Periodic-like
 
     laplacian_term = (1j / (2 * k0 * n0)) * laplacian_E
     index_term = 1j * (k0 / (2 * n0)) * (n_r2_slice - n0**2) * E_slice
-    damping_term = - sigma_x * E_slice
-    return laplacian_term + index_term + damping_term
+    damping_term = -sigma_x * E_slice
+    result: NDArray[np.complex128] = laplacian_term + index_term + damping_term
+    return result
 
-def run_bpm(E, n_r2, x, z, dx, dz, n0, sigma_x, wavelength):
+
+def run_bpm(
+    E: NDArray[np.complex128],
+    n_r2: NDArray[np.float64],
+    x: NDArray[np.float64],
+    z: NDArray[np.float64],
+    dx: float,
+    dz: float,
+    n0: float,
+    sigma_x: NDArray[np.float64],
+    wavelength: float,
+) -> NDArray[np.complex128]:
     """
     Run the BPM propagation using an RK4 integrator.
 
@@ -112,7 +148,7 @@ def run_bpm(E, n_r2, x, z, dx, dz, n0, sigma_x, wavelength):
         raise ValueError("E must be 2D array")
     if not np.iscomplexobj(E):
         E = E.astype(np.complex128)
-        warnings.warn("Converting field E to complex128", UserWarning)
+        warnings.warn("Converting field E to complex128", UserWarning, stacklevel=2)
 
     # Ensure proper dtype
     E = np.asarray(E, dtype=np.complex128)
@@ -134,11 +170,11 @@ def run_bpm(E, n_r2, x, z, dx, dz, n0, sigma_x, wavelength):
     k0 = 2 * np.pi / wavelength
     Nz = len(z)
     for zi in range(1, Nz):
-        E_prev = E[:, zi-1]
-        n_r2_slice = n_r2[:, zi-1]
+        E_prev = E[:, zi - 1]
+        n_r2_slice = n_r2[:, zi - 1]
         k1 = dz * compute_dE_dz(E_prev, n_r2_slice, dx, n0, sigma_x, k0)
-        k2 = dz * compute_dE_dz(E_prev + k1/2, n_r2_slice, dx, n0, sigma_x, k0)
-        k3 = dz * compute_dE_dz(E_prev + k2/2, n_r2_slice, dx, n0, sigma_x, k0)
+        k2 = dz * compute_dE_dz(E_prev + k1 / 2, n_r2_slice, dx, n0, sigma_x, k0)
+        k3 = dz * compute_dE_dz(E_prev + k2 / 2, n_r2_slice, dx, n0, sigma_x, k0)
         k4 = dz * compute_dE_dz(E_prev + k3, n_r2_slice, dx, n0, sigma_x, k0)
-        E[:, zi] = E_prev + (k1 + 2*k2 + 2*k3 + k4) / 6
+        E[:, zi] = E_prev + (k1 + 2 * k2 + 2 * k3 + k4) / 6
     return E

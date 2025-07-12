@@ -1,16 +1,17 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import plotly.tools as tls
-import plotly.io as pio
 import warnings
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from bpm.mode_solver import slab_mode_source
+
 
 def test_slab_mode_plot():
     # Define transverse coordinate and waveguide parameters
     x = np.linspace(-10, 10, 1000)  # Adjust range/resolution as needed
-    w = 5.0         # waveguide width in microns
-    n_WG = 1.1      # core refractive index
-    n0 = 1.0        # cladding refractive index
+    w = 5.0  # waveguide width in microns
+    n_WG = 1.1  # core refractive index
+    n0 = 1.0  # cladding refractive index
     wavelength = 0.532  # in microns
 
     # Try to compute up to 5 modes
@@ -24,11 +25,13 @@ def test_slab_mode_plot():
             mode_fields.append(E_mode)
             mode_indices.append(m)
         except Exception as err:
-            warnings.warn(f"Mode {m} not found: {err}. Stopping mode search.")
+            warnings.warn(
+                f"Mode {m} not found: {err}. Stopping mode search.", stacklevel=2
+            )
             break
 
     # Plot the real part of each mode with an offset for clarity
-    plt.rcParams.update({'font.size': 14})
+    plt.rcParams.update({"font.size": 14})
     fig, ax = plt.subplots(figsize=(8, 6))
     offset = 1.0  # Vertical offset between mode plots
     for i, E_mode in enumerate(mode_fields):
@@ -47,6 +50,7 @@ def test_slab_mode_plot():
     # plotly_fig = tls.mpl_to_plotly(fig)
     # plotly_fig.update_layout(legend=dict(font=dict(size=12)))
     # pio.show(plotly_fig)
+
 
 if __name__ == "__main__":
     test_slab_mode_plot()

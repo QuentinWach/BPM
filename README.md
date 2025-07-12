@@ -176,4 +176,3 @@ Photonic Devices for Telecommunications
 	- https://ieeexplore.ieee.org/abstract/document/59679
 - Vassallo1992: Improvement of finite difference methods for step-index optical waveguides
 	- https://digital-library.theiet.org/doi/abs/10.1049/ip-j.1992.0024
-

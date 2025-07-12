@@ -1,18 +1,36 @@
-import numpy as np
+from __future__ import annotations
+
 import warnings
+from typing import TYPE_CHECKING, Callable
+
+import numpy as np
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 # Handle numpy version compatibility for trapezoid function
 try:
-    from numpy import trapezoid
+    from numpy import trapezoid  # type: ignore[attr-defined]
 except ImportError:
     # Fallback for older numpy versions
-    from numpy import trapz as trapezoid
+    from numpy import trapz as trapezoid  # type: ignore[attr-defined]
+
     warnings.warn(
         "Using deprecated trapz. Please upgrade numpy >= 1.22.0",
-        DeprecationWarning
+        DeprecationWarning,
+        stacklevel=2,
     )
 
-def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
+
+def slab_mode_source(
+    x: NDArray[np.float64],
+    w: float,
+    n_WG: float,
+    n0: float,
+    wavelength: float,
+    ind_m: int = 0,
+    x0: float = 0,
+) -> NDArray[np.complex128]:
     """
     Returns the normalized TE mode profile for a symmetric slab waveguide with a lateral shift x0.
 
@@ -55,8 +73,8 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
 
     k0 = 2 * np.pi / wavelength
 
-    def f_even(beta):
-        if beta < n0*k0 or beta > n_WG*k0:
+    def f_even(beta: float) -> float | None:
+        if beta < n0 * k0 or beta > n_WG * k0:
             return None
         inside = n_WG**2 * k0**2 - beta**2
         outside = beta**2 - n0**2 * k0**2
@@ -64,10 +82,10 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
             return None
         kx = np.sqrt(inside)
         kappa = np.sqrt(outside)
-        return kx * np.tan(kx * w / 2) - kappa
+        return float(kx * np.tan(kx * w / 2) - kappa)
 
-    def f_odd(beta):
-        if beta < n0*k0 or beta > n_WG*k0:
+    def f_odd(beta: float) -> float | None:
+        if beta < n0 * k0 or beta > n_WG * k0:
             return None
         inside = n_WG**2 * k0**2 - beta**2
         outside = beta**2 - n0**2 * k0**2
@@ -78,9 +96,9 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
         sin_term = np.sin(kx * w / 2)
         if abs(sin_term) < 1e-12:
             return None
-        return - kx * (np.cos(kx * w / 2) / sin_term) - kappa
+        return float(-kx * (np.cos(kx * w / 2) / sin_term) - kappa)
 
-    def valid_even(beta):
+    def valid_even(beta: float) -> bool:
         inside = n_WG**2 * k0**2 - beta**2
         if inside <= 0:
             return False
@@ -88,37 +106,45 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
         theta = kx * w / 2
         m = int(np.floor(2 * theta / np.pi))
         if m % 2 == 0:
-            if m == 0 and theta > (np.pi/2 - 0.1):
-                return False
-            return True
+            return not (m == 0 and theta > np.pi / 2 - 0.1)
         return False
 
-    def valid_odd(beta):
+    def valid_odd(beta: float) -> bool:
         inside = n_WG**2 * k0**2 - beta**2
         if inside <= 0:
             return False
         kx = np.sqrt(inside)
         theta = kx * w / 2
         m = int(np.floor(2 * theta / np.pi))
-        return (m % 2 == 1)
+        return m % 2 == 1
 
     N = 2000
-    beta_scan = np.linspace(n0*k0, n_WG*k0, N)
+    beta_scan = np.linspace(n0 * k0, n_WG * k0, N)
     even_intervals = []
     odd_intervals = []
     f_even_vals = [f_even(b) for b in beta_scan]
     f_odd_vals = [f_odd(b) for b in beta_scan]
-    for i in range(N-1):
-        if (f_even_vals[i] is not None) and (f_even_vals[i+1] is not None):
-            if f_even_vals[i] * f_even_vals[i+1] < 0:
-                even_intervals.append((beta_scan[i], beta_scan[i+1]))
-        if (f_odd_vals[i] is not None) and (f_odd_vals[i+1] is not None):
-            if f_odd_vals[i] * f_odd_vals[i+1] < 0:
-                odd_intervals.append((beta_scan[i], beta_scan[i+1]))
-                
-    def refine_root(f, b_left, b_right):
+    for i in range(N - 1):
+        if (f_even_vals[i] is not None) and (f_even_vals[i + 1] is not None):
+            # Type assertion since we checked for None above
+            val_i = f_even_vals[i]
+            val_i_plus_1 = f_even_vals[i + 1]
+            assert val_i is not None and val_i_plus_1 is not None
+            if val_i * val_i_plus_1 < 0:
+                even_intervals.append((beta_scan[i], beta_scan[i + 1]))
+        if (f_odd_vals[i] is not None) and (f_odd_vals[i + 1] is not None):
+            # Type assertion since we checked for None above
+            val_i = f_odd_vals[i]
+            val_i_plus_1 = f_odd_vals[i + 1]
+            assert val_i is not None and val_i_plus_1 is not None
+            if val_i * val_i_plus_1 < 0:
+                odd_intervals.append((beta_scan[i], beta_scan[i + 1]))
+
+    def refine_root(
+        f: Callable[[float], float | None], b_left: float, b_right: float
+    ) -> float:
         for _ in range(50):
-            b_mid = 0.5*(b_left+b_right)
+            b_mid = 0.5 * (b_left + b_right)
             val_mid = f(b_mid)
             if val_mid is None:
                 b_right = b_mid
@@ -126,19 +152,19 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
             if abs(val_mid) < 1e-9:
                 return b_mid
             val_left = f(b_left)
-            if val_left is None or val_left*val_mid > 0:
+            if val_left is None or val_left * val_mid > 0:
                 b_left = b_mid
             else:
                 b_right = b_mid
         return b_mid
 
     even_roots = []
-    for (b_left, b_right) in even_intervals:
+    for b_left, b_right in even_intervals:
         root = refine_root(f_even, b_left, b_right)
         if valid_even(root):
             even_roots.append(root)
     odd_roots = []
-    for (b_left, b_right) in odd_intervals:
+    for b_left, b_right in odd_intervals:
         root = refine_root(f_odd, b_left, b_right)
         if valid_odd(root):
             odd_roots.append(root)
@@ -150,7 +176,8 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
     if ind_m >= len(modes_sorted):
         warnings.warn(
             f"Requested mode index {ind_m} >= found modes ({len(modes_sorted)}). Using highest mode index {len(modes_sorted)-1}.",
-            UserWarning
+            UserWarning,
+            stacklevel=2,
         )
         ind_m = len(modes_sorted) - 1
 
@@ -164,17 +191,21 @@ def slab_mode_source(x, w, n_WG, n0, wavelength, ind_m=0, x0=0):
     if parity == "even":
         for i, xi in enumerate(x):
             xp = xi - x0
-            if abs(xp) <= w/2:
+            if abs(xp) <= w / 2:
                 E[i] = np.cos(kx * xp)
             else:
-                E[i] = np.cos(kx * (w/2)) * np.exp(-kappa * (abs(xp)-w/2))
+                E[i] = np.cos(kx * (w / 2)) * np.exp(-kappa * (abs(xp) - w / 2))
     else:
         for i, xi in enumerate(x):
             xp = xi - x0
-            if abs(xp) <= w/2:
+            if abs(xp) <= w / 2:
                 E[i] = np.sin(kx * xp)
             else:
-                E[i] = np.sign(xp) * np.sin(kx * (w/2)) * np.exp(-kappa * (abs(xp)-w/2))
-    norm = np.sqrt(trapezoid(np.abs(E)**2, x))
+                E[i] = (
+                    np.sign(xp)
+                    * np.sin(kx * (w / 2))
+                    * np.exp(-kappa * (abs(xp) - w / 2))
+                )
+    norm = np.sqrt(trapezoid(np.abs(E) ** 2, x))
     E /= norm
     return E

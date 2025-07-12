@@ -1,6 +1,21 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 
-def generate_sigma_x(x, dx, wavelength, domain_size, sigma_max=0.5, pml_factor=5):
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+
+def generate_sigma_x(
+    x: NDArray[np.float64],
+    dx: float,
+    wavelength: float,
+    domain_size: float,
+    sigma_max: float = 0.5,
+    pml_factor: float = 5,
+) -> NDArray[np.float64]:
     """
     Generate the 1D PML damping profile sigma(x) for the x-dimension.
 
@@ -42,7 +57,7 @@ def generate_sigma_x(x, dx, wavelength, domain_size, sigma_max=0.5, pml_factor=5
     pml_thickness = int(pml_factor * wavelength / dx)
     pml_width = pml_thickness * dx
     x_edge = domain_size / 2 - pml_width
-    sigma_x = np.where(np.abs(x) > x_edge,
-                       sigma_max * ((np.abs(x) - x_edge) / pml_width) ** 2,
-                       0)
+    sigma_x = np.where(
+        np.abs(x) > x_edge, sigma_max * ((np.abs(x) - x_edge) / pml_width) ** 2, 0
+    )
     return sigma_x

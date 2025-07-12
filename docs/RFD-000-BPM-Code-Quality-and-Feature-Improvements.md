@@ -1,9 +1,9 @@
 # RFD-000: BPM Code Quality and Feature Improvements
 
-**Status**: Draft  
-**Author**: Augment Agent  
-**Date**: 2025-07-12  
-**Version**: 1.0  
+**Status**: Draft
+**Author**: Augment Agent
+**Date**: 2025-07-12
+**Version**: 1.0
 
 ## Abstract
 
@@ -29,7 +29,7 @@ The BPM library is a well-structured Python package for simulating electromagnet
 
 **Issue**: Line 45 in `bpm/core.py` generates ComplexWarning when assigning complex values.
 
-**Root Cause**: 
+**Root Cause**:
 ```python
 E[:, zi] = E_prev + (k1 + 2*k2 + 2*k3 + k4) / 6  # Line 45
 ```
@@ -45,7 +45,7 @@ The field array `E` might be initialized as real-valued, causing casting issues.
    ```python
    # Before (problematic)
    E[:, zi] = E_prev + (k1 + 2*k2 + 2*k3 + k4) / 6
-   
+
    # After (fixed)
    E[:, zi] = E_prev + (k1 + 2*k2 + 2*k3 + k4) / 6
    # Ensure E is initialized as: E = np.zeros((Nx, Nz), dtype=np.complex128)
@@ -70,7 +70,7 @@ The field array `E` might be initialized as real-valued, causing casting issues.
    ```python
    # Before
    norm = np.sqrt(np.trapz(np.abs(E)**2, x))
-   
+
    # After
    norm = np.sqrt(np.trapezoid(np.abs(E)**2, x))
    ```
@@ -115,7 +115,7 @@ The field array `E` might be initialized as real-valued, causing casting issues.
        # CFL condition check
        # Sampling requirements
        pass
-   
+
    def validate_field_shape(E, n_r2, x, z):
        """Validate field and index arrays have consistent shapes."""
        pass
@@ -200,6 +200,55 @@ def create_laplacian_matrix(N, dx):
 - [x] Add boundary condition handling
 - [ ] Make method selectable via parameter
 
+## Priority 3: Code Quality and Type Safety (COMPLETED)
+
+### 3.1 Strict Type Annotations
+
+**Status**: ✅ COMPLETED
+
+**Description**: Added comprehensive type annotations to all modules using modern Python typing features.
+
+**Implementation**:
+- Added `from __future__ import annotations` for forward references
+- Used `TYPE_CHECKING` imports to avoid runtime overhead
+- Applied strict typing with `NDArray[np.float64]` and `NDArray[np.complex128]`
+- Added proper return type annotations for all functions
+- Used modern union syntax (`|` instead of `Union`)
+
+**TODO Items**:
+- [x] Add type annotations to all modules
+- [x] Use strict mypy configuration
+- [x] Fix all type checking errors
+- [x] Add TYPE_CHECKING imports for performance
+
+### 3.2 Pre-commit Hooks Setup
+
+**Status**: ✅ COMPLETED
+
+**Description**: Configured automated code quality checks with pre-commit hooks.
+
+**Implementation**:
+- Set up ruff for linting and formatting (replaces black, isort, flake8)
+- Configured mypy for strict type checking
+- Added pytest integration for automated testing
+- Included standard pre-commit hooks for file hygiene
+
+**Pre-commit Configuration**:
+```yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+  - repo: https://github.com/pre-commit/mirrors-mypy
+  - repo: local (pytest)
+```
+
+**TODO Items**:
+- [x] Configure ruff for linting and formatting
+- [x] Set up mypy with strict settings
+- [x] Add pre-commit configuration
+- [x] Test all hooks work correctly
+- [x] Fix all linting and type issues
+
 ### Priority 3: Feature Enhancements (Medium)
 
 #### 3.1 Implement GDSII Import
@@ -214,7 +263,7 @@ import gdspy  # or gdstk for newer implementation
 def import_gds_structure(gds_file, layer, x_grid, z_grid, n_core, n_clad):
     """
     Import structure from GDSII file and convert to refractive index map.
-    
+
     Parameters:
     -----------
     gds_file : str
@@ -225,7 +274,7 @@ def import_gds_structure(gds_file, layer, x_grid, z_grid, n_core, n_clad):
         Coordinate grids for discretization
     n_core, n_clad : float
         Refractive indices for core and cladding
-        
+
     Returns:
     --------
     n_r2 : ndarray
@@ -319,7 +368,7 @@ def gds_to_index_map(polygons, x_grid, z_grid, n_core, n_clad):
    def calculate_mode_overlap(mode1, mode2, x):
        """Calculate overlap integral between two modes."""
        pass
-   
+
    def calculate_coupling_coefficient(mode1, mode2, dn_perturbation, x):
        """Calculate coupling coefficient due to perturbation."""
        pass
@@ -385,11 +434,11 @@ docs/
    def test_complex_field_handling():
        """Test complex field initialization and propagation."""
        pass
-   
+
    def test_stability_conditions():
        """Test numerical stability under various conditions."""
        pass
-   
+
    def test_boundary_conditions():
        """Test different boundary condition implementations."""
        pass
@@ -401,7 +450,7 @@ docs/
    def test_waveguide_propagation_accuracy():
        """Test against analytical solutions."""
        pass
-   
+
    def test_mode_launching_efficiency():
        """Test mode launching and propagation."""
        pass
@@ -413,7 +462,7 @@ docs/
    def test_large_grid_performance():
        """Benchmark performance on large grids."""
        pass
-   
+
    def test_memory_usage():
        """Monitor memory usage during simulation."""
        pass

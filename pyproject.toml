@@ -37,10 +37,9 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
-    "black>=22.0.0",
-    "isort>=5.10.0",
-    "flake8>=5.0.0",
+    "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
 ]
 gui = [
     "gradio>=4.0.0",
@@ -70,29 +69,46 @@ bpm-gui = "bpm.app:main"
 [tool.hatch.build.targets.wheel]
 packages = ["bpm"]
 
-[tool.black]
+[tool.ruff]
+target-version = "py39"
 line-length = 88
-target-version = ['py39']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 88
-known_first_party = ["bpm"]
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+]
+ignore = [
+    "E501",  # line too long, handled by formatter
+    "B008",  # do not perform function calls in argument defaults
+    "E741",  # ambiguous variable name (allow l, L for physics)
+]
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["bpm"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -104,8 +120,12 @@ python_functions = ["test_*"]
 
 [tool.mypy]
 python_version = "3.9"
+strict = true
 warn_return_any = true
 warn_unused_configs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
@@ -116,6 +136,7 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+show_error_codes = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -124,6 +145,10 @@ module = [
     "gradio.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "numpy"
+no_implicit_reexport = false
 
 [tool.coverage.run]
 source = ["bpm"]
